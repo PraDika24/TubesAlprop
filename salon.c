@@ -77,9 +77,7 @@ unsigned int *tanggal;//global variabel
 unsigned int *bulan;//global variabel
 
 float *diskon;//global variabel
-float *bayarMemberKhusus;
-float *bayarKhusus;
-float d, e;
+
 
 time_t t;
 struct tm *tm;
@@ -234,7 +232,7 @@ void admin(){
              }
              else{
 
-                while (fscanf(total, "%f", &nilai) == 1){
+                while (fscanf(total, "%f", &nilai) == 1){//untuk mengetahui total pemasukan salon
                     printf("\t\t\tPemasukan = %.2f\n",nilai);
                     hasil= hasil + nilai;
                 }
@@ -804,7 +802,7 @@ void menuLayanan(){
 	system("cls");
 	char *namaLayanan[100][100];
     int i, layanan, menulayanan[100], member, harga[100];
-    float  totalharga = 0, bayarMember;
+    float  bayarMemberKhusus, bayarKhusus, totalharga = 0, bayarMember;
 	char kode_member[100];
 	printf("\n\n");
 	printf ("\t\t\t==================================================================\n");
@@ -1007,7 +1005,7 @@ void menuLayanan(){
 		            }
 		    	}
 		    	else { //bila kode membership benar masuk ke pembayaran
-						bayarMemberKhusus = &d;
+
                         t = time(NULL);
                         tm = localtime(&t);
 
@@ -1016,7 +1014,7 @@ void menuLayanan(){
                                 totalharga= totalharga + harga[i];
                             }
                              bayarMember = totalharga * 0.9;
-                             d = *diskon * bayarMember;//diskon member  + diskon pada tanggal tertentu input dilakukan pegawai
+                             bayarMemberKhusus = *diskon * bayarMember;//diskon member  + diskon pada tanggal tertentu input dilakukan pegawai
                              printf("\n\n");
                              printf("\t\t\tJam Masuk          : %d:%d \n", tm->tm_hour, tm->tm_min);
                              printf("\t\t\t====================================================================\n");
@@ -1030,10 +1028,13 @@ void menuLayanan(){
                             printf("\t\t\t|                                                                  |\n");
                             printf("\t\t\t|                                                                  |\n");
                             printf("\t\t\t====================================================================\n");
-                            printf("\t\t\t|    Total Pembayaran = Rp. %.2f\n", d);
+                            printf("\t\t\t|    Total Pembayaran = Rp. %.2f\n", bayarMemberKhusus);
                             printf("\t\t\t====================================================================\n");
                             getch();
-                            
+                            FILE * vis;
+                            vis = fopen("totalPemasukan.txt","a+");
+                            fprintf(vis,"%.2f\n",bayarMemberKhusus);
+                            fclose(vis);
 
 
                             //menyimpan waktu pemesanan
@@ -1056,7 +1057,7 @@ void menuLayanan(){
                             }
                             fprintf (cetak, "\n-----------------------------------------------------------------------------------------------------------------\n");
                             fprintf (cetak, "                                               TOTAL PEMBAYARAN                                                  \n");
-                            fprintf (cetak, "                                               Rp. %.2f\n", *bayarMemberKhusus);
+                            fprintf (cetak, "                                               Rp. %.2f\n", bayarMemberKhusus);
                             fprintf (cetak, "-----------------------------------------------------------------------------------------------------------------\n");
                             fclose  (cetak);
 
@@ -1078,15 +1079,14 @@ void menuLayanan(){
         }
         }
         else if(member==2){//jika pelanggan tidak punya member
-            bayarKhusus = &e;
-			t = time(NULL);
+            t = time(NULL);
             tm = localtime(&t);
-			
+
            if((tm->tm_mday, tm->tm_mon+1, tm->tm_year+1900)==(*tanggal, *bulan, tm->tm_year+1900)){
                 for(i=1; i<=layanan; i++){
                     totalharga= totalharga + harga[i];
                 }
-                e = *diskon * totalharga;//diskon pada tanggal tertentu
+                bayarKhusus = *diskon * totalharga;//diskon pada tanggal tertentu
                 printf("\t\t\tJam Masuk          : %d:%d \n", tm->tm_hour, tm->tm_min);
                 printf("\t\t\t====================================================================\n");
                 printf("\t\t\t|                       -TOTAL PEMBAYARAN-                         |\n");
@@ -1098,10 +1098,13 @@ void menuLayanan(){
                 }
                 printf("\t\t\t|                                                                  |\n");
                 printf("\t\t\t====================================================================\n");
-                printf("\t\t\t|    Total Pembayaran = Rp. %.2f\n", e);
+                printf("\t\t\t|    Total Pembayaran = Rp. %.2f\n", bayarKhusus);
                 printf("\t\t\t====================================================================\n");
                 getch();
-                
+                FILE * bayar;
+                bayar = fopen("totalPemasukan.txt","a+");
+                fprintf(bayar,"%.2f\n",bayarKhusus);
+                fclose(bayar);
 
                 //menyimpan waktu pemesanan
                 FILE * waktu;
@@ -1123,7 +1126,7 @@ void menuLayanan(){
                 }
                 fprintf (cetak, "\n-----------------------------------------------------------------------------------------------------------------\n");
                 fprintf (cetak, "                                               TOTAL PEMBAYARAN                                                  \n");
-                fprintf (cetak, "                                               Rp. %.2f\n", *bayarKhusus);
+                fprintf (cetak, "                                               Rp. %.2f\n", bayarKhusus);
                 fprintf (cetak, "-----------------------------------------------------------------------------------------------------------------\n");
                 fclose  (cetak);
 
@@ -1155,8 +1158,6 @@ void konfirmasiPemesanan(){
     t = time(NULL);
     tm = localtime(&t);
     int waktu1, pilih, lama, waktu2;
-    float simpan1;
-    float simpan2;
     char buff[255];
    	FILE * keluar;
    	keluar = fopen("waktukeluar.txt", "w");
@@ -1199,18 +1200,7 @@ void konfirmasiPemesanan(){
                                     printf("\t\t\tBCA     : 001193495738\n");
                                     printf("\t\t\tBNI     : 002300230498\n");
                                     printf("\t\t\tMandiri : 006463774536\n");
-                                    
-                                    
-                                    simpan1 = *bayarMemberKhusus;
-                                    simpan2 = *bayarKhusus;
-                                    FILE * masukan;//memasukan data transakis ke dalam file txt agar dapat nilai total pemasukan
-			                        masukan = fopen("totalPemasukan.txt","a+");
-			                        fprintf(masukan,"%.2f\n", *bayarMemberKhusus) ||  fprintf(masukan,"%.2f\n", *bayarKhusus);
-			                      fclose(masukan);
-	                               getch();
-									
-                                    
-                                    
+                                    getch();
                                     printf ("\n\n");
                                     printf ("\t\t\tTerimakasih Telah Melakukan Pemesanan di Salon Kami");
                                     getch();
