@@ -75,9 +75,9 @@ float c;//global variabel
 unsigned int *tanggal;//global variabel
 
 unsigned int *bulan;//global variabel
+float nilai3;
 
 float *diskon;//global variabel
-
 
 time_t t;
 struct tm *tm;
@@ -177,7 +177,7 @@ void admin(){
 	printf("\t\t\t|            [3] Keluar                                                     |\n");
 	printf("\t\t\t|                                                                           |\n");
 	printf("\t\t\t|===========================================================================|\n");
-	printf("\t\t\t Pilih (1-3) untuk melakukan tindakan :                                        ");
+	printf("\t\t\t Pilih (1-3) untuk melakukan tindakan : ");
 	opsi = validasi_angka();
 	
 	system("pause");
@@ -220,30 +220,40 @@ void admin(){
 
 	}
 	else if(opsi==2){
-             float nilai;
+			
              float hasil=0;
+             char buff[255];
              system("cls");
-             FILE * total;
-             total=fopen("totalPemasukan.txt","r");
-             if(total == NULL){
+             FILE * total1;
+             total1=fopen("totalPemasukan.txt","r+");
+             if(total1 == NULL){
                 printf("\t\t\tBelum Ada Pemasukan");
                 getch();
                 goto awalan;
              }
              else{
-
-                while (fscanf(total, "%f", &nilai) == 1){//untuk mengetahui total pemasukan salon
-                    printf("\t\t\tPemasukan = %.2f\n",nilai);
-                    hasil= hasil + nilai;
+				 while(fgets(buff, sizeof(buff), total1)){
+                        printf("%s\n",buff);
                 }
-                printf("\t\t\tTotal Pemasukan = %.2f", hasil);
-
-                fclose(total);
+			
+                fclose(total1);
+          	}
+          	
+          	
+            FILE * must1;
+			must1 = fopen("totalPemasukan1.txt","a+"); 
+            while (fscanf(must1, "%f",&nilai3) == 1){//untuk mengetahui total pemasukan salon
+                hasil= hasil + nilai3;
+            }
+                printf("\t\t\tTotal Pemasukan Hari Ini = %.2f\n", hasil);
+			
+                fclose(total1);  
                 getch();
                 goto awalan;
-            }
+            
 
         }
+    
 
         else if(opsi==3){//jika ingin keluar progran
             system("cls");
@@ -408,7 +418,8 @@ void login(){
             case 2:
                 cobaLogin:
                 system("cls");
-				regis = fopen("regis_pengguna.txt","a+");
+                FILE * regist;
+				regist = fopen("regis_pengguna.txt","a+");
 				masuk = false;
                 printf("\t\t\t=====================================================================\n");
                 printf("\t\t\t|                            'LOGIN'                                |\n");
@@ -421,12 +432,19 @@ void login(){
                 scanf("%s", &password);
                 printf("\n\t\t\t|                                                                \n");
                 printf("\t\t\t====================================================================\n");
-                while(fscanf(regis,"\n%s\n%s",user.username,user.password)!=EOF){
+                
+				FILE * save;//untuk menyimpan username pelanggan yang nantinya akan dibandingkan dengan kode member apabila pelanggan menjadi anggota
+                save = fopen("simpan_username.txt", "w+");
+                fprintf(save, "%s", username);
+                fclose(save);
+                
+                while(fscanf(regist,"\n%s\n%s",user.username,user.password)!=EOF){
 		            if((strcmp(user.username,username) == 00) && (strcmp(user.password,password)==00)){
 		                masuk = true;
 		                break;
 	           		}
 	       		}
+	       		
 	       		if(!masuk){ //bila username dan/ password salah
                     loginGagal:
 		            system("cls");
@@ -628,13 +646,15 @@ void menuPegawai(){
                 printf("\t\t\t|   	                                                              \n");
                 printf("\t\t\t|   Input Data Pelanggan dengan Benar!!                             \n");
                 printf("\t\t\t|                                                                   \n");
-                printf("\t\t\t|   Nama Pelanggan\t\t: ");
+                printf("\t\t\t|   Nama Pelanggan\t: ");
                 scanf(" %[^\n]s", &anggota.nama);
                 fflush(stdin);
-                printf("\n\t\t\t| No.Telpon Pelanggan\t: ");
+                printf("\t\t\t|   Usernamen Pelanggan\t: ");
+                 scanf(" %[^\n]s", &username);
+                printf("\n\t\t\t| No.Telpon \t\t: ");
                 anggota.notelpon = validasi_no_hp();
                 printf("\n\t\t\t| Kode Member\t: ");
-                gets(anggota.kodemeber);
+                scanf("%s", &anggota.kodemeber);
                 fflush(stdin);
                 printf("\t\t\t|                                                                   \n");
                 printf("\t\t\t====================================================================\n");
@@ -645,6 +665,7 @@ void menuPegawai(){
                 printf("\t\t\t====================================================================\n");
 
                 fprintf(daftar,"%s\n",anggota.kodemeber);
+                fprintf(daftar,"%s\n",username);
 	            fclose(daftar);
                  getch();
                 printf("\n\n");
@@ -664,11 +685,20 @@ void menuPegawai(){
                 fprintf (cetak, "|      Kode Membership : %s \n",anggota.kodemeber);
                 fprintf (cetak, "=================================================================\n");
                 fclose  (cetak);
-                FILE * must;
+                
+                FILE * save;
+                save = fopen("simpan_username.txt","r");
+                fscanf(save, "%s", &username);
+                fclose(save);
+                
+                FILE * must, *must1;
                 must = fopen("totalPemasukan.txt","a+");
-                fprintf(must,"50000\n");
+                fprintf(must,"Pemasukan Membership sebesar 50000 dari %s\n", username);
                 fclose(must);
-
+                must1 = fopen("totalPemasukan1.txt","a+");
+                fprintf(must1,"50000\n");
+				fclose(must1);
+				
                 printf("\n\n");
                 printf("\t\t\t====================================================================\n");
                 printf("\t\t\t|                -KARTU MEMBERSHIP BERHASIL DICETAK-               |\n");
@@ -707,7 +737,7 @@ void menuPegawai(){
                 fprintf (out, "Membership                                : Rp. 50.000\n");
                 fprintf (out, "-----------------------------------------------------------------------------------------------------------------\n");
                 fprintf (out, "                                               TOTAL PEMBAYARAN                                                  \n");
-                fprintf (out, "                                                  Rp. 50.000 ");
+                fprintf (out, "                                                  Rp. 50.000\n ");
                 fprintf (out, "-----------------------------------------------------------------------------------------------------------------\n");
                 fclose  (out);
                 printf("\n\n");
@@ -802,8 +832,18 @@ void menuLayanan(){
 	system("cls");
 	char *namaLayanan[100][100];
     int i, layanan, menulayanan[100], member, harga[100];
+    float diskonjadi;
     float  bayarMemberKhusus, bayarKhusus, totalharga = 0, bayarMember;
 	char kode_member[100];
+
+	printf("\n\n");
+	if(*diskon == 1){
+		printf("Mohon Maaf, Tidak Ada Diskon Khusus Hari Ini\n");
+	}
+	else{
+		diskonjadi = (1-*diskon)*100;
+		printf("Diskon %.2f persen untuk Pembayaran Semua Layanan Khusus Hari Ini\n", diskonjadi);
+	}
 	printf("\n\n");
 	printf ("\t\t\t==================================================================\n");
 	printf ("\t\t\t|                 - DAFTAR LAYANAN DAN HARGANYA-                 |\n");
@@ -956,8 +996,8 @@ void menuLayanan(){
 
         membership:
         printf("\t\t\t====================================================================\n");
-        printf("\t\t\t|                           -MEMBERSHIP-                           |\n");
-        printf("\t\t\t====================================================================\n");
+	 	printf("\t\t\t|                           -MEMBERSHIP-                           |\n");
+	 	printf("\t\t\t====================================================================\n");
         printf("\n\n\n\t\t\tApakah Anda Mempunyai Kartu Member?\n\n");
         printf("\t\t\t1. Ya \n");
         printf("\t\t\t2. Tidak\n");
@@ -969,13 +1009,20 @@ void menuLayanan(){
                 FILE *rus;
                 rus = fopen("anggota_membership.txt","a+");
                 masuk = false;
+                char username_pelanggan[30];
                 printf("\t\t\t====================================================================\n");
-                printf("\t\t\t|                           -MEMBERSHIP-                           |\n");
-                printf("\t\t\t====================================================================\n");
+	 			printf("\t\t\t|                           -MEMBERSHIP-                           |\n");
+	 			printf("\t\t\t====================================================================\n");
                 printf("\t\t\t|  Masukan KODE MEMBERSHIP anda : ");
                 scanf("%s", &kode_member);
-                 while(fscanf(rus,"\n%s",anggota.kodemeber)!=EOF){
-		            if(strcmp(anggota.kodemeber,kode_member) == 00) {
+                
+                FILE *save;//membuka simpan username
+                save = fopen("simpan_username.txt","r");
+                fscanf(save, "%s", &username_pelanggan);
+                fclose(save);
+                
+                 while(fscanf(rus,"\n%s\n%s",anggota.kodemeber,username)!=EOF){
+		            if((strcmp(anggota.kodemeber,kode_member) == 00) && (strcmp( username,username_pelanggan)==0)){
 		                masuk = true;
 		                break;
 	           		}
@@ -1008,7 +1055,12 @@ void menuLayanan(){
 
                         t = time(NULL);
                         tm = localtime(&t);
-
+                        
+						FILE *save;//membuka simpan username
+		                save = fopen("simpan_username.txt","r");
+		                fscanf(save, "%s", &username);
+		                fclose(save);
+                
                         if((tm->tm_mday, tm->tm_mon+1, tm->tm_year+1900)==(*tanggal, *bulan, tm->tm_year+1900)){
                             for(i=1; i<=layanan; i++){
                                 totalharga= totalharga + harga[i];
@@ -1020,10 +1072,11 @@ void menuLayanan(){
                              printf("\t\t\t====================================================================\n");
                              printf("\t\t\t|                       -TOTAL PEMBAYARAN-                         |\n");
                              printf("\t\t\t====================================================================\n");
-                             printf("\t\t\t|                                                                  |");
+                             printf("\t\t\t|                                                                  |\n");
+                             printf("\t\t\t| Username  : %s ", username);
                              for(i=1; i<=layanan; i++){
-                                printf("\n\t\t\t|\t %s",namaLayanan[i][i]);
-                                printf("\t\t\t|\tRp. %d",harga[i]);
+                                printf("\t\t\t|   %s",namaLayanan[i][i]);
+                    			printf("Rp. %d\n",harga[i]);
                             }
                             printf("\t\t\t|                                                                  |\n");
                             printf("\t\t\t|                                                                  |\n");
@@ -1031,18 +1084,21 @@ void menuLayanan(){
                             printf("\t\t\t|    Total Pembayaran = Rp. %.2f\n", bayarMemberKhusus);
                             printf("\t\t\t====================================================================\n");
                             getch();
-                            FILE * vis;
-                            vis = fopen("totalPemasukan.txt","a+");
-                            fprintf(vis,"%.2f\n",bayarMemberKhusus);
+                            FILE * vis, *must1;
+                            vis = fopen("Pemasukan.txt","w");
+                            fprintf(vis,"Pemasukan sebesar Rp. %.2f dari %s\n",bayarMemberKhusus, username);
                             fclose(vis);
+			                must1 = fopen("Pemasukan1.txt","w");
+			                fprintf(must1,"%.2f\n",bayarMemberKhusus);
+							fclose(must1);
 
 
                             //menyimpan waktu pemesanan
                             FILE * waktu;
                             waktu = fopen("waktu.txt", "w+");
-                            fprintf (waktu, "%d", tm->tm_hour);
+                            fprintf (waktu, "%d %d", tm->tm_hour,tm->tm_min );
                             fclose(waktu);
-
+							
                             FILE * cetak;
                             cetak = fopen("transaksi_anggotamember3.txt","w+");//cetak file nota
                             fprintf (cetak, "==============================================================================================================\n\n");
@@ -1051,6 +1107,7 @@ void menuLayanan(){
                             fprintf (cetak, "                                                WA. 081247899057                                               \n");
                             fprintf (cetak, "==============================================================================================================\n\n");
                             fprintf (cetak, "Tanggal                                   : %d-%d-%d\n", tm->tm_mday, tm->tm_mon+1, tm->tm_year+1900);
+                            fprintf (cetak, "Nama                                      : %s ", username);
                             for(i=1; i<=layanan; i++){
                                 fprintf(cetak, "\n%s",namaLayanan[i][i]);
                                 fprintf(cetak, "\t\t\t\t\t : Rp. %d\n",harga[i]);
@@ -1081,6 +1138,10 @@ void menuLayanan(){
         else if(member==2){//jika pelanggan tidak punya member
             t = time(NULL);
             tm = localtime(&t);
+            FILE *save;//membuka simpan username
+		   save = fopen("simpan_username.txt","r");
+		   fscanf(save, "%s", &username);
+		   fclose(save);
 
            if((tm->tm_mday, tm->tm_mon+1, tm->tm_year+1900)==(*tanggal, *bulan, tm->tm_year+1900)){
                 for(i=1; i<=layanan; i++){
@@ -1092,24 +1153,28 @@ void menuLayanan(){
                 printf("\t\t\t|                       -TOTAL PEMBAYARAN-                         |\n");
                 printf("\t\t\t====================================================================\n");
                 printf("\t\t\t|                                                                  |\n");
+                printf("\t\t\t| Username  : %s ", username);
                 for(i=1; i<=layanan; i++){
                     printf("\t\t\t|   %s",namaLayanan[i][i]);
-                    printf("\t\t\t|  Rp. %d",harga[i]);
+                    printf("Rp. %d\n",harga[i]);
                 }
                 printf("\t\t\t|                                                                  |\n");
                 printf("\t\t\t====================================================================\n");
                 printf("\t\t\t|    Total Pembayaran = Rp. %.2f\n", bayarKhusus);
                 printf("\t\t\t====================================================================\n");
                 getch();
-                FILE * bayar;
-                bayar = fopen("totalPemasukan.txt","a+");
-                fprintf(bayar,"%.2f\n",bayarKhusus);
+                FILE * bayar, *must1;
+                bayar = fopen("Pemasukan.txt","w");
+                fprintf(bayar,"Pemasukan sebesar Rp. %.2f dari %s\n",bayarKhusus, username);
                 fclose(bayar);
+                must1 = fopen("Pemasukan1.txt","w");
+                fprintf(must1,"%.2f\n",bayarKhusus);
+				fclose(must1);
 
                 //menyimpan waktu pemesanan
                 FILE * waktu;
                 waktu = fopen("waktu.txt", "w+");
-                fprintf (waktu, "%d", tm->tm_hour);
+                fprintf (waktu, "%d %d", tm->tm_hour, tm->tm_min);
                 fclose(waktu);
 
                 FILE * cetak;
@@ -1120,6 +1185,7 @@ void menuLayanan(){
                 fprintf (cetak, "                                                WA. 081247899057                                               \n");
                 fprintf (cetak, "==============================================================================================================\n\n");
                 fprintf (cetak, "Tanggal                                   : %d-%d-%d\n", tm->tm_mday, tm->tm_mon+1, tm->tm_year+1900);
+                fprintf (cetak, "Nama                                      : %s ", username);
                 for(i=1; i<=layanan; i++){
                 fprintf(cetak, "\n%s",namaLayanan[i][i]);
                 fprintf(cetak, "\t\t\t : Rp. %d",harga[i]);
@@ -1130,15 +1196,16 @@ void menuLayanan(){
                 fprintf (cetak, "-----------------------------------------------------------------------------------------------------------------\n");
                 fclose  (cetak);
 
-                getch();
-                menuPelanggan();
-
+                
+				printf("\n\n");
                 printf("\t\t\t====================================================================\n");
                 printf("\t\t\t| - PEMESANAN ANDA TELAH BERHASIL DISIMPAN KEMBALI KE MENU UTAMA - |\n");
                 printf("\t\t\t|       - UNTUK MENGKONFIRMASI PEMESANAN BATAS WAKTU 2 JAM -       |\n");
                 printf("\t\t\t|                  - SEBELUM DINYATAKAN HANGUS -                   |\n");
                 printf("\t\t\t====================================================================\n");
-
+				
+				getch();
+                menuPelanggan();
         }
     }
 
@@ -1157,27 +1224,31 @@ void konfirmasiPemesanan(){
     time_t now;
     t = time(NULL);
     tm = localtime(&t);
-    int waktu1, pilih, lama, waktu2;
+    float nilai;
+    int jam1, jam2, menit1, menit2, lama, konversi1, konversi2, pilih;
     char buff[255];
+	char buff2[255];
    	FILE * keluar;
    	keluar = fopen("waktukeluar.txt", "w");
-   	fprintf(keluar, "%d", tm->tm_hour);
+   	fprintf(keluar, "%d", tm->tm_hour, tm->tm_min);
    	fclose(keluar);
-	printf("\t\t\tJam Konfirmasi = %d\n", tm->tm_hour);
+	printf("\t\t\tJam Konfirmasi = %d:%d\n", tm->tm_hour, tm->tm_min);
 	fflush(stdin);
 	//membaca file waktu memesan dan waktu konfirmasi
 	FILE *waktupesan, *waktuconf;
 	waktupesan = fopen("waktu.txt", "r");
-	fscanf (waktupesan, "%d", &waktu1);
+	fscanf (waktupesan, "%d %d", &jam1, &menit1);
 	fclose(waktupesan);
 	waktuconf = fopen("waktukeluar.txt", "r");
-	fscanf (waktuconf, "%d", &waktu2);
+	fscanf (waktuconf, "%d %d", &jam2, &menit2);
 	fclose(waktuconf);
-	lama = waktu2 - waktu1;
 	
+	konversi1= (jam1*60)+ menit1;
+	konversi2= (jam2*60)+ menit2;
+	lama = konversi1-konversi2;
 
 
-							if (lama<=2 ) {
+							if (lama<=120 ) {
                                 printf("\n\n");
 	       						printf("\t\t\t Apakah Anda ingin Mengkonfirmasi Pesesanan ?\n");
 	       						printf("\t\t\t 1. Ya\n");
@@ -1194,6 +1265,7 @@ void konfirmasiPemesanan(){
                                         printf("%s",buff);
                                         }
                                     fclose(transaksi1);
+                                
 
                                     printf("\n\n");
                                     printf("\t\t\tSilahkan Transfer ke Rekening di Bawah ini\n");
@@ -1203,8 +1275,31 @@ void konfirmasiPemesanan(){
                                     getch();
                                     printf ("\n\n");
                                     printf ("\t\t\tTerimakasih Telah Melakukan Pemesanan di Salon Kami");
-                                    getch();
-                                    menuPelanggan();
+                                    
+                                    FILE * bayar;
+					                bayar = fopen("Pemasukan.txt","r");
+					                fgets(buff2, sizeof(buff2), bayar);
+					                fclose(bayar);
+                                    
+                                    
+		                            FILE * vis;
+		                            vis = fopen("totalPemasukan.txt","a+");
+		                            fprintf_s(vis,"%s\n",buff2);
+		                            fclose(vis);
+                                   
+                                    
+                                    FILE * bayar2;
+					                bayar2 = fopen("Pemasukan1.txt","r");
+					                fscanf_s(bayar2,"%f",&nilai);
+					                fclose(bayar2);
+					                
+					                FILE * must1;
+					                must1 = fopen("totalPemasukan1.txt","a+");
+					                fprintf(must1,"%.2f\n",nilai);
+									fclose(must1);
+									
+					            getch();
+                                menuPelanggan();  
                                 }
 	       						else if(pilih==2){
 	       							printf ("\n\n");
